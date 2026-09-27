@@ -1,0 +1,6 @@
+{
+  "name": "JAL LOCHAN: AI Acoustic Debris Detection System",
+  "description": "JAL LOCHAN: Offshore hydrographic side-scan sonar (SSS/XTF) processor featuring SRAD speckle filtering, CLAHE contrast enhancement, dual-head YOLOv8-OBB & U-Net inference, physics shadow height verification, and WGS84 geospatial export for AUV cleanup operations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
