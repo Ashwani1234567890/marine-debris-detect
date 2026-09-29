@@ -8,6 +8,7 @@ interface TopNavProps {
   setIsPlaying: (playing: boolean) => void;
   onOpenExport: () => void;
   onOpenUpload: () => void;
+  onOpenDeploy: () => void;
   onResetPing: () => void;
   missionName: string;
 }
@@ -19,6 +20,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   setIsPlaying,
   onOpenExport,
   onOpenUpload,
+  onOpenDeploy,
   onResetPing,
   missionName
 }) => {
@@ -133,7 +135,17 @@ export const TopNav: React.FC<TopNavProps> = ({
           title="Upload local sonar scan image to run acoustic processing"
         >
           <Upload className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Upload Image</span>
+          <span className="hidden sm:inline">Upload Image</span>
+        </button>
+
+        {/* Cloud & Deploy modal trigger */}
+        <button
+          onClick={onOpenDeploy}
+          className="px-3 py-1.5 rounded text-xs font-medium text-amber-300 bg-amber-950/60 border border-amber-500/40 hover:bg-amber-900/50 transition-colors flex items-center gap-1.5 font-sans whitespace-nowrap"
+          title="Firebase, Vercel & Google Cloud Deployment configurations"
+        >
+          <Radio className="w-3.5 h-3.5 text-amber-400" />
+          <span className="hidden sm:inline">Cloud & Deploy</span>
         </button>
 
         {/* Export geodata modal trigger */}

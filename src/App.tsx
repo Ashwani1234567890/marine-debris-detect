@@ -11,8 +11,10 @@ import { DebrisInventoryTable } from './components/DebrisInventoryTable';
 import { InspectorModal } from './components/InspectorModal';
 import { ExportModal } from './components/ExportModal';
 import { UploadScanModal } from './components/UploadScanModal';
+import { DeploymentModal } from './components/DeploymentModal';
 import { MISSION_DATASETS, INITIAL_FILTER_STATE } from './data/missions';
 import { DetectedDebrisTarget, EdgeTelemetry, FilterState, MissionDataset } from './types/sonar';
+import { testConnection, subscribeToMissionTargets, saveTargetToFirestore } from './lib/firebase';
 
 export default function App() {
   const [currentMission, setCurrentMission] = useState<MissionDataset>(MISSION_DATASETS[0]);
@@ -23,11 +25,31 @@ export default function App() {
   const [selectedTarget, setSelectedTarget] = useState<DetectedDebrisTarget | null>(null);
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+  const [showDeploymentModal, setShowDeploymentModal] = useState<boolean>(false);
 
   // Playback / live streaming state
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [pingOffset, setPingOffset] = useState<number>(0);
   const [pingCount, setPingCount] = useState<number>(1042);
+
+  // Initialize Firebase connection test on startup
+  useEffect(() => {
+    testConnection();
+  }, []);
+
+  // Subscribe to real-time cloud updates for the active mission
+  useEffect(() => {
+    const unsubscribe = subscribeToMissionTargets(currentMission.id, (cloudTargets) => {
+      setTargets((prev) => {
+        const mergedMap = new Map<string, DetectedDebrisTarget>();
+        prev.forEach((t) => mergedMap.set(t.id, t));
+        cloudTargets.forEach((t) => mergedMap.set(t.id, t));
+        return Array.from(mergedMap.values());
+      });
+    });
+
+    return () => unsubscribe();
+  }, [currentMission.id]);
 
   // Edge Hardware Telemetry state
   const [telemetry, setTelemetry] = useState<EdgeTelemetry>({
@@ -56,6 +78,9 @@ export default function App() {
     setTargets((prev) => [newTarget, ...prev]);
     setSelectedTarget(newTarget);
     setActiveTab('waterfall');
+    saveTargetToFirestore(currentMission.id, newTarget).catch((err) => {
+      console.warn('Could not sync uploaded target to Firestore:', err);
+    });
   };
 
   // Live ping waterfall animation loop
@@ -83,6 +108,7 @@ export default function App() {
         setIsPlaying={setIsPlaying}
         onOpenExport={() => setShowExportModal(true)}
         onOpenUpload={() => setShowUploadModal(true)}
+        onOpenDeploy={() => setShowDeploymentModal(true)}
         onResetPing={() => {
           setPingOffset(0);
           setPingCount(1000);
@@ -183,6 +209,15 @@ export default function App() {
           onAddTargetToMission={(newTarget) => {
             handleCustomUpload(newTarget);
           }}
+        />
+      )}
+
+      {/* 9. Cloud Integrations (Firebase, Vercel, GCP) Modal */}
+      {showDeploymentModal && (
+        <DeploymentModal
+          currentMission={currentMission}
+          targets={targets}
+          onClose={() => setShowDeploymentModal(false)}
         />
       )}
     </div>

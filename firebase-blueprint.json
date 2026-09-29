@@ -1,0 +1,190 @@
+{
+  "entities": {
+    "DebrisTarget": {
+      "title": "DebrisTarget",
+      "description": "Acoustic debris detection target record with physical height and geospatial tags",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique target identifier",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "maxLength": 64
+        },
+        "label": {
+          "type": "string",
+          "description": "Descriptive target label",
+          "maxLength": 128
+        },
+        "debrisClass": {
+          "type": "string",
+          "description": "Debris classification category",
+          "enum": ["ghost_net", "pipe", "container", "tire", "uxo", "drum", "wreckage", "cable"]
+        },
+        "modelHead": {
+          "type": "string",
+          "description": "Inference head used",
+          "enum": ["yolov8_obb", "unet"]
+        },
+        "channel": {
+          "type": "string",
+          "description": "Sonar swath channel",
+          "enum": ["port", "starboard"]
+        },
+        "confidence": {
+          "type": "number",
+          "description": "Model confidence score between 0 and 1"
+        },
+        "calculatedHeight_m": {
+          "type": "number",
+          "description": "Physics shadow verified object elevation in meters"
+        },
+        "shadowLength_m": {
+          "type": "number",
+          "description": "Acoustic shadow length in meters"
+        },
+        "groundRange_m": {
+          "type": "number",
+          "description": "Ground range distance from nadir in meters"
+        },
+        "towfishAltitude_m": {
+          "type": "number",
+          "description": "Altitude of towfish during detection"
+        },
+        "isPhysicsVerified": {
+          "type": "boolean",
+          "description": "Whether shadow physics criteria confirmed true 3D object"
+        },
+        "riskLevel": {
+          "type": "string",
+          "description": "Environmental risk rating",
+          "enum": ["critical", "high", "moderate", "low"]
+        },
+        "hazardType": {
+          "type": "string",
+          "description": "Hazard classification",
+          "enum": ["entanglement", "navigational", "toxic_ordnance", "infrastructure"]
+        },
+        "lat": {
+          "type": "number",
+          "description": "WGS84 latitude"
+        },
+        "lon": {
+          "type": "number",
+          "description": "WGS84 longitude"
+        },
+        "depth_m": {
+          "type": "number",
+          "description": "Water depth in meters"
+        },
+        "recoveryProtocol": {
+          "type": "string",
+          "description": "Recommended salvage recovery protocol",
+          "maxLength": 512
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "User UID who recorded or confirmed target",
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp or server timestamp"
+        }
+      },
+      "required": ["id", "label", "debrisClass", "modelHead", "channel", "confidence", "calculatedHeight_m", "lat", "lon"]
+    },
+    "Mission": {
+      "title": "Mission",
+      "description": "Hydrographic sonar survey mission record",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique mission ID",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "description": "Survey mission name",
+          "maxLength": 128
+        },
+        "region": {
+          "type": "string",
+          "description": "Geographic operational region",
+          "maxLength": 128
+        },
+        "surveyVessel": {
+          "type": "string",
+          "description": "Survey vessel or mothership",
+          "maxLength": 128
+        },
+        "auvModel": {
+          "type": "string",
+          "description": "AUV or towfish sensor model",
+          "maxLength": 128
+        },
+        "waterDepthMeters": {
+          "type": "number",
+          "description": "Nominal depth"
+        },
+        "towfishAltitudeMeters": {
+          "type": "number",
+          "description": "Nominal sensor altitude"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last updated timestamp"
+        }
+      },
+      "required": ["id", "name", "region"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated hydrographic surveyor profile",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth user ID",
+          "maxLength": 128
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Surveyor name",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "Surveyor email",
+          "maxLength": 128
+        },
+        "role": {
+          "type": "string",
+          "description": "User role",
+          "enum": ["surveyor", "operator", "admin"]
+        },
+        "lastActive": {
+          "type": "string",
+          "description": "ISO timestamp"
+        }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/missions/{missionId}": {
+      "schema": { "$ref": "#/entities/Mission" },
+      "description": "Top-level survey missions"
+    },
+    "/missions/{missionId}/targets/{targetId}": {
+      "schema": { "$ref": "#/entities/DebrisTarget" },
+      "description": "Detected sonar targets within a survey mission"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile records for authenticated operators"
+    }
+  }
+}
